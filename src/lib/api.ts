@@ -1,6 +1,7 @@
 import fetch from 'node-fetch';
 import { getConfig, getToken } from './config';
 import { ApiError } from '../utils/errors';
+import { isLoggingEnabled, logApiCall, sanitizeParams } from './logger';
 
 const BASE_URL = 'https://graph.facebook.com';
 
@@ -91,17 +92,32 @@ export async function apiRequest<T = any>(
     };
   }
 
+  const shouldLog = isLoggingEnabled();
   let lastError: ApiError | undefined;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const startTime = Date.now();
     const response = await fetch(url, fetchOptions);
     const data = (await response.json()) as ApiResponse<T>;
+    const durationMs = Date.now() - startTime;
 
     if (data.error) {
       const err = data.error;
       const errorMsg = `[${err.code}] ${err.type}: ${err.message}${
         err.error_subcode ? ` (subcode: ${err.error_subcode})` : ''
       }`;
+
+      if (shouldLog) {
+        logApiCall({
+          timestamp: new Date().toISOString(),
+          method,
+          endpoint,
+          params: sanitizeParams(params),
+          status: 'error',
+          error: errorMsg,
+          durationMs,
+        });
+      }
 
       if (isRateLimitError(err.code, err.error_subcode) && attempt < MAX_RETRIES) {
         const delayMs = BASE_DELAY_MS * Math.pow(2, attempt);
@@ -114,6 +130,18 @@ export async function apiRequest<T = any>(
       }
 
       throw new ApiError(errorMsg);
+    }
+
+    if (shouldLog) {
+      logApiCall({
+        timestamp: new Date().toISOString(),
+        method,
+        endpoint,
+        params: sanitizeParams(params),
+        status: 'success',
+        responseId: data.id,
+        durationMs,
+      });
     }
 
     return data;

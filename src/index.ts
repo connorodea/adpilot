@@ -19,6 +19,14 @@ import { registerLabelCommands } from './commands/labels';
 import { registerGenerateCommands } from './commands/generate';
 import { registerCompletionCommands } from './commands/completions';
 import { registerBulkCommands } from './commands/bulk';
+import { registerAiCommands } from './commands/ai';
+import { registerValidateCommands } from './commands/validate';
+import { registerRulesCommands } from './commands/rules';
+import { registerDiscoverCommands } from './commands/discover';
+import { registerLogsCommands } from './commands/logs';
+import { registerReportsCommands } from './commands/reports';
+import { registerCycleCommands } from './commands/cycle';
+import { registerBudgetCommands } from './commands/budget';
 import { AdPilotError, ExitCode } from './utils/errors';
 
 const program = new Command();
@@ -55,6 +63,14 @@ registerLabelCommands(program);
 registerGenerateCommands(program);
 registerCompletionCommands(program);
 registerBulkCommands(program);
+registerAiCommands(program);
+registerValidateCommands(program);
+registerRulesCommands(program);
+registerDiscoverCommands(program);
+registerLogsCommands(program);
+registerReportsCommands(program);
+registerCycleCommands(program);
+registerBudgetCommands(program);
 
 // Global error handling
 program.exitOverride();
